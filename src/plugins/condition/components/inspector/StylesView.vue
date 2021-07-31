@@ -79,12 +79,19 @@
                 >
                     <span class="c-button__label">Change...</span>
                 </button>
-
                 <button class="c-click-icon icon-x"
                         title="Remove conditional styles"
                         @click="removeConditionSet"
-                ></button>
+                </button>
             </template>
+        </div>
+        <div class="useConditionText">
+            <input v-model="useConditionText"
+                type="checkbox"
+                @change="updateConditionText"
+            >
+            Use Condition Set's Condition outputs as label 
+            </input>
         </div>
 
         <FontStyleEditor
@@ -171,7 +178,8 @@ export default {
             selectedConditionId: '',
             items: [],
             domainObject: undefined,
-            consolidatedFontStyle: {}
+            consolidatedFontStyle: {},
+            useConditionText: false
         };
     },
     computed: {
@@ -262,6 +270,7 @@ export default {
         this.openmct.editor.on('isEditing', this.setEditState);
         this.stylesManager.on('styleSelected', this.applyStyleToSelection);
     },
+
     methods: {
         getObjectStyles() {
             let objectStyles;
@@ -488,16 +497,19 @@ export default {
                 }
 
                 this.conditions[conditionConfiguration.id] = conditionConfiguration;
-                let foundStyle = this.findStyleByConditionId(conditionConfiguration.id);
+                let foundStyle = this.findStyleByConditionId(conditionConfiguration.id);    
+                let changeLabel =  { "label": conditionConfiguration.configuration.output};
+                let isInvisible = this.canHide ? { isStyleInvisible: '' } : {};
                 if (foundStyle) {
-                    foundStyle.style = Object.assign((this.canHide ? { isStyleInvisible: '' } : {}), this.initialStyles, foundStyle.style);
+                    foundStyle.style = Object.assign(isInvisible, this.initialStyles, foundStyle.style, changeLabel);
                     conditionalStyles.push(foundStyle);
                 } else {
                     conditionalStyles.splice(index, 0, {
                         conditionId: conditionConfiguration.id,
-                        style: Object.assign((this.canHide ? { isStyleInvisible: '' } : {}), this.initialStyles)
+                        style: Object.assign(isInvisible, this.initialStyles, changeLabel)
                     });
                 }
+                
             });
             //we're doing this so that we remove styles for any conditions that have been removed from the condition set
             this.conditionalStyles = conditionalStyles;
@@ -659,6 +671,7 @@ export default {
             }
         },
         getAndPersistStyles(property, defaultConditionId) {
+            console.log(`getAndPersistStyles: property ${JSON.stringify(property)} ID: ${JSON.stringify(defaultConditionId)}`);
             this.persist(this.domainObject, this.getDomainObjectStyle(this.domainObject, property, this.items, defaultConditionId));
             if (this.domainObjectsById) {
                 const domainObjects = Object.values(this.domainObjectsById);
@@ -716,7 +729,11 @@ export default {
                     } else {
                         objectStyle.styles.forEach((conditionalStyle, index) => {
                             let style = {};
-                            Object.keys(item.applicableStyles).concat(['isStyleInvisible']).forEach(key => {
+                            let optionalStyles = ['isStyleInvisible'];
+                            if (this.useConditionText) {
+                                optionalStyles.push('label')
+                            };
+                            Object.keys(item.applicableStyles).concat(optionalStyles).forEach(key => {
                                 style[key] = conditionalStyle.style[key];
                             });
                             itemConditionalStyle.styles.push({
@@ -737,7 +754,7 @@ export default {
                     ...objectStyle
                 };
             }
-
+    // console.log(`Domain Object Styles are: ${JSON.stringify(domainObjectStyles)}`);
             return domainObjectStyles;
         },
         applySelectedConditionStyle(conditionId) {
@@ -768,7 +785,7 @@ export default {
         },
         updateSelectionStyle(style) {
             const foundStyle = this.findStyleByConditionId(this.selectedConditionId);
-
+            debugger;
             if (foundStyle && !this.isStaticAndConditionalStyles) {
                 Object.entries(style).forEach(([property, value]) => {
                     if (foundStyle.style[property] !== undefined && foundStyle.style[property] !== value) {
@@ -864,7 +881,12 @@ export default {
             const layoutItemType = selectionPath[0].context.layoutItem && selectionPath[0].context.layoutItem.type;
 
             return layoutItemType && layoutItemType !== 'subobject-view';
+        },
+        updateConditionText(){
+            console.log(`Use Condition Text ${this.useConditionText}`);
+            this.getAndPersistStyles();
         }
+
     }
 };
 </script>

@@ -144,14 +144,17 @@ export default {
         },
         updateStyle(styleObj) {
             let elemToStyle = this.getStyleReceiver();
-
+ 
             if (!styleObj || elemToStyle === undefined) {
                 return;
             }
 
             let keys = Object.keys(styleObj);
 
-            keys.forEach(key => {
+            keys.forEach(key => { console.log(`${key} : ${styleObj[key]}`);
+                if (key === "label") {
+                    this.domainObject.conditionalLabel = styleObj[key];
+                }
                 if (elemToStyle) {
                     if ((typeof styleObj[key] === 'string') && (styleObj[key].indexOf('__no_value') > -1)) {
                         if (elemToStyle.style[key]) {

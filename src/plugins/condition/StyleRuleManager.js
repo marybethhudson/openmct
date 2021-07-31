@@ -143,7 +143,6 @@ export default class StyleRuleManager extends EventEmitter {
             if (foundStyle !== this.currentStyle) {
                 this.currentStyle = foundStyle;
             }
-
             this.updateDomainObjectStyle();
         } else {
             this.applyStaticStyle();

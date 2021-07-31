@@ -231,7 +231,8 @@ describe('the plugin', function () {
         const staticStyle = {
             "style": {
                 "backgroundColor": "#717171",
-                "border": "1px solid #00ffff"
+                "border": "1px solid #00ffff",
+                "label": ""
             }
         };
         const conditionalStyle = {
@@ -239,7 +240,8 @@ describe('the plugin', function () {
             "style": {
                 "isStyleInvisible": "",
                 "backgroundColor": "#717171",
-                "border": "1px solid #ffff00"
+                "border": "1px solid #ffff00",
+                "label": "test label" 
             }
         };
 
